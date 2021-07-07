@@ -1,17 +1,65 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt');
+
+// add token
+const jwt = require('jsonwebtoken');
+
+// protect Password / Hashing
+const saltRounds = 10;
 
 // get Database
 const dbConnection = require('./lib/database');
 
-app.use(bodyParser());
+// get data file in folder public
 app.use(express.static('public'));
 
 // Connection To Client
-app.use(cors());
 app.use(express.json());
+app.use(cors());
+
+//  Register
+app.post('/register', (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  bcrypt.hash(password, saltRounds, (err, hash) => {
+    if (err) throw err;
+    dbConnection.query('INSERT INTO admin (username, password) VALUES (?,?) ', [username, hash], (err, rows) => {
+      if (err) throw err;
+      res.send({ message: 'success register' });
+    });
+  });
+});
+
+//  Login
+app.post('/login', (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  dbConnection.query('SELECT * FROM admin WHERE username = ? ', username, (err, rows) => {
+    if (err) {
+      res.send({ err: err });
+    } else {
+      if (rows.length > 0) {
+        bcrypt.compare(password, rows[0].password, (err, response) => {
+          if (response) {
+            // add token
+            let data = rows[0].id;
+            const token = jwt.sign({ data }, 'jwtSecret', {
+              expiresIn: 300,
+            });
+            res.json({ token: token });
+          } else {
+            res.send({ message: 'username / password is wrong!' });
+          }
+        });
+      } else {
+        res.send({ message: 'username / password is wrong!' });
+      }
+    }
+  });
+});
 
 // Get Contacts
 app.get('/contacts', (req, res) => {
