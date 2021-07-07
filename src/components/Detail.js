@@ -21,7 +21,7 @@ export default class Detail extends Component {
   render() {
     return (
       <div>
-        <div>
+        <div className>
           <div class="container mt-5">
             <div class="card">
               <h3>Detail Contact</h3>
