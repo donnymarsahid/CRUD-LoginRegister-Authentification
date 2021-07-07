@@ -34,6 +34,11 @@ export default class Home extends Component {
                 Sign In
               </button>
             </Link>
+            <Link to="/login">
+              <button class="nav-link ms-auto" aria-current="page">
+                Login & Register
+              </button>
+            </Link>
           </nav>
         </div>
         <div class="row">{renderContacts}</div>
